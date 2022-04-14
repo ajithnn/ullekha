@@ -18,7 +18,7 @@ mkForm =
     in newForm [ label "Title" @@=
                    editTextField title TitleField (Just 1)
                , label "Content" @@=
-                   editTextField content ContentField (Just 3)
+                   editTextField content ContentField Nothing
                ]
 
 

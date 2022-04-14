@@ -37,16 +37,20 @@ library
   default-extensions:
       OverloadedStrings
       TemplateHaskell
+      DeriveGeneric
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , brick
+    , bytestring
     , microlens
     , microlens-th
+    , split
     , text
     , vty
   default-language: Haskell2010
 
-executable ullekha-exe
+executable ullekha
   main-is: Main.hs
   other-modules:
       Paths_ullekha
@@ -55,12 +59,16 @@ executable ullekha-exe
   default-extensions:
       OverloadedStrings
       TemplateHaskell
+      DeriveGeneric
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , brick
+    , bytestring
     , microlens
     , microlens-th
+    , split
     , text
     , ullekha
     , vty
@@ -76,6 +84,7 @@ test-suite ullekha-test
   default-extensions:
       OverloadedStrings
       TemplateHaskell
+      DeriveGeneric
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5

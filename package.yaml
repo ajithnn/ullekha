@@ -25,6 +25,7 @@ dependencies:
 default-extensions: 
   - OverloadedStrings
   - TemplateHaskell
+  - DeriveGeneric
 
 library:
   source-dirs: src
@@ -34,9 +35,12 @@ library:
     - microlens
     - microlens-th
     - vty
+    - split
+    - aeson
+    - bytestring
 
 executables:
-  ullekha-exe:
+  ullekha:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -45,11 +49,14 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - ullekha
+    - aeson
     - brick
     - text
     - microlens
     - microlens-th
     - vty
+    - split
+    - bytestring
 
 tests:
   ullekha-test:
