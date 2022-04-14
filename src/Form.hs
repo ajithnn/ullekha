@@ -7,7 +7,7 @@ import           Brick.Widgets.Core
 import           Types
 
 getForm :: Form Note e Name -> Widget Name
-getForm f =  border $ padTop (Pad 1) $ hLimit 50 $ renderForm f
+getForm  =  border . padTop (Pad 1) . hLimit 50 . renderForm
 
 emptyForm = mkForm Note{ _title="",_content="" }
 
@@ -16,9 +16,9 @@ mkForm =
     let label s w = padBottom (Pad 1) $
                     vLimit 1 (hLimit 15 $ str s <+> fill ' ') <+> w
     in newForm [ label "Title" @@=
-                   editTextField title TitleField (Just 1)
+                  editTextField title TitleField (Just 1)
                , label "Content" @@=
-                   editTextField content ContentField Nothing
+                  editTextField content ContentField Nothing
                ]
 
 
