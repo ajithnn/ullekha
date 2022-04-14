@@ -28,7 +28,6 @@ library
       Actions
       Dialog
       Form
-      Lib
       Types
       Widgets
   other-modules:
