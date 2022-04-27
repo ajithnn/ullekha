@@ -7,6 +7,7 @@ import           Data.Aeson
 import           Data.Text            as T hiding (center)
 import           GHC.Generics
 import           Lens.Micro.TH        (makeLenses)
+import           System.FilePath
 
 
 data Name = TitleField
@@ -19,9 +20,10 @@ data Name = TitleField
 data Choice = Save | Cancel deriving (Show)
 
 data Note = Note{
-  _title   :: Text,
-  _content :: Text
-} deriving (Show,Generic)
+  _title    :: Text,
+  _content  :: Text,
+  _selected :: Bool
+} deriving (Show,Generic,Eq)
 
 instance ToJSON Note where
 instance FromJSON Note where
@@ -36,11 +38,14 @@ data Notes = Notes{
 
 
 data AppState e n = AppState {
-  _notes      :: Notes,
-  _showDialog :: Bool,
-  _showHelp   :: Bool,
-  _form       :: Form Note e n,
-  _dlg        :: Dialog Choice
+  _notes         :: Notes,
+  _selectedIndex :: Int,
+  _showDialog    :: Bool,
+  _showHelp      :: Bool,
+  _form          :: Form Note e n,
+  _editMode      :: Bool,
+  _persistFile   :: FilePath,
+  _dlg           :: Dialog Choice
 
 }
 

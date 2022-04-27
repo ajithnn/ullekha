@@ -43,6 +43,7 @@ library
     , base >=4.7 && <5
     , brick
     , bytestring
+    , filepath
     , microlens
     , microlens-th
     , split
@@ -66,6 +67,7 @@ executable ullekha
     , base >=4.7 && <5
     , brick
     , bytestring
+    , filepath
     , microlens
     , microlens-th
     , split

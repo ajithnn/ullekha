@@ -9,7 +9,8 @@ import           Brick.Forms
 import qualified Brick.Main                 as M
 import           Brick.Types
 import           Brick.Widgets.Border       (border, borderWithLabel, vBorder)
-import           Brick.Widgets.Border.Style (unicode)
+import           Brick.Widgets.Border.Style (borderStyleFromChar, unicode,
+                                             unicodeBold, unicodeRounded)
 import           Brick.Widgets.Center       (center, centerLayer, hCenter)
 import           Brick.Widgets.Core
 import           Brick.Widgets.Dialog       as D
@@ -24,10 +25,13 @@ import           Lens.Micro                 ((%~), (&), (.~), (^.))
 import           Types                      as Ty
 
 
+helpText = "F12 - Show/Hide Help; Insert - Open Dialog; Ctrl-s : Save Note; Ctrl-c : Cancel Dialog; \
+            \ Ctrl-Up/Down : Scroll Viewport; Ctrl-Left/Right : Select Note ; Esc : Save State & Exit"
+
 drawLayer :: AppState e Name -> Widget Name
 drawLayer st = widget
   where widget  | st^.showDialog = noteDialog st
-                | st^.(notes .totalNotes) > 0 = viewport MainViewPort Vertical $ customWidget st
+                | not (null (st^.(notes . noteData))) = viewport MainViewPort Vertical $ customWidget st
                 | otherwise = welcomeWidget
 
 welcomeWidget :: Widget Name
@@ -48,23 +52,29 @@ noteWidgets width st = padLeft (Pad 0) $ padRight Max $ padBottom Max $
           splitNotes totWidth noteWidth = chunksOf $ totWidth `div` noteWidth
 
 note :: Note -> Widget Name
-note n =  hLimit 35 $
+note n =  withBorderStyle borderStyle $
+          hLimit 35 $
           vLimit 20 $
           borderWithLabel (txt $ n^.title)
           (padTop (Pad 0) $ txtWrap $ n^.content)
+  where borderStyle | n^.selected = unicodeBold
+                    | otherwise = unicode
 
 helpWidget :: AppState e Name -> Widget Name
 helpWidget st = result
-  where result  | st^.showHelp =  borderWithLabel (str "Help")
-                                  (txtWrap "F12 - Show/Hide Help; Insert - Open Dialog; Ctrl-s : Save Note; Ctrl-c : Cancel Dialog; Ctrl-Up/Down : Scroll Viewport; Esc : Save State & Exit")
+  where result  | st^.showHelp =  borderWithLabel (str "Help") (txtWrap helpText)
                 | otherwise = emptyWidget
 
 appEvent :: AppState e Name -> BrickEvent Name e -> EventM Name (Next (AppState e Name))
 appEvent st ev = case ev of
   (VtyEvent (V.EvKey V.KEsc  []))               -> liftIO (onExit st) >>= M.halt
   (VtyEvent (V.EvKey V.KIns  []))               -> M.continue $ st & showDialog .~ True
+  (VtyEvent (V.EvKey V.KEnter  []))             -> edit st ev
   (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> scroll st 1
   (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> scroll st (-1)
+  (VtyEvent (V.EvKey V.KRight  [V.MCtrl]))      -> select st 1
+  (VtyEvent (V.EvKey V.KLeft  [V.MCtrl]))       -> select st (-1)
+  (VtyEvent (V.EvKey V.KDel  [V.MCtrl]))        -> remove st
   (VtyEvent (V.EvKey (V.KFun 12) []))           -> M.continue $ st & showHelp %~ not
   (VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl]))  -> M.continue $ st & showDialog .~ False
   (VtyEvent (V.EvKey (V.KChar 's') [V.MCtrl]))  -> onSave st ev

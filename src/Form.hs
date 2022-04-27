@@ -1,4 +1,4 @@
-module Form(getForm,emptyForm) where
+module Form(getForm,emptyForm,setForm) where
 
 import           Brick.Forms
 import           Brick.Types
@@ -9,7 +9,11 @@ import           Types
 getForm :: Form Note e Name -> Widget Name
 getForm  =  border . padTop (Pad 1) . hLimit 50 . renderForm
 
-emptyForm = mkForm Note{ _title="",_content="" }
+setForm :: Maybe Note -> Form Note e Name
+setForm Nothing  = emptyForm
+setForm (Just n) = mkForm n
+
+emptyForm = mkForm Note{ _title="",_content="", _selected=False}
 
 mkForm :: Note -> Form Note e Name
 mkForm =

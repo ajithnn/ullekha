@@ -38,6 +38,7 @@ library:
     - split
     - aeson
     - bytestring
+    - filepath
 
 executables:
   ullekha:
@@ -57,6 +58,7 @@ executables:
     - vty
     - split
     - bytestring
+    - filepath
 
 tests:
   ullekha-test:
