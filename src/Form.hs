@@ -13,7 +13,7 @@ setForm :: Maybe Note -> Form Note e Name
 setForm Nothing  = emptyForm
 setForm (Just n) = mkForm n
 
-emptyForm = mkForm Note{ _title="",_content="", _selected=False}
+emptyForm = mkForm Note{ _title="",_content="", _selected=False,_highlighted=False}
 
 mkForm :: Note -> Form Note e Name
 mkForm =
@@ -23,6 +23,8 @@ mkForm =
                   editTextField title TitleField (Just 1)
                , label "Content" @@=
                   editTextField content ContentField Nothing
+               , label "" @@=
+                   checkboxField highlighted HighlightField "Important?"
                ]
 
 

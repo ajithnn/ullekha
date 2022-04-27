@@ -6,6 +6,7 @@ module Actions (
   onStart,
   remove,
   edit,
+  cloneOrCancel,
   select
   ) where
 
@@ -33,13 +34,13 @@ onFormUpdate st ev = do
 onSave st ev = do
   f' <- handleFormEvent ev $ st^.form
   if st^.editMode then do
-    M.continue $ st & (notes . noteData . ix (st^.selectedIndex)) .~ Note{_title = formState f'^.title,_content = formState f'^.content,_selected = False}
+    M.continue $ st & (notes . noteData . ix (st^.selectedIndex)) .~ Note{_title = formState f'^.title,_content = formState f'^.content,_selected = False,_highlighted=formState f'^.highlighted}
                     & showDialog    .~ False
                     & editMode      .~ False
                     & form          .~ emptyForm
                     & selectedIndex .~ (-1)
   else do
-    M.continue $ st & (notes . noteData) %~ (++[Note{_title = formState f'^.title,_content = formState f'^.content,_selected = False}])
+    M.continue $ st & (notes . noteData) %~ (++[Note{_title = formState f'^.title,_content = formState f'^.content,_selected = False,_highlighted = formState f'^.highlighted}])
                     & showDialog .~ False
                     & form .~ emptyForm
                     & (notes . totalNotes) %~ (+1)
@@ -70,19 +71,36 @@ remove st = do
                   & (notes . totalNotes) %~ (\v -> v - 1)
 
 onExit st = do
-  encodeFile (st^.persistFile) $ st^.notes.noteData & each . selected .~ False
-  return st
+  if st^.persistFile == "" then do
+    return st
+  else do
+    encodeFile (st^.persistFile) $ st^.notes.noteData & each . selected .~ False
+    return st
 
-onStart fp = do
-  let path = L.head fp
+onStart (FileInput path) = do
   contents <- readFile path
   let response = eitherDecode ((BL.fromStrict . B.pack) contents) :: Either String [Note]
   case response of
     Left e      -> return $ initApp [] path
     Right notes -> return $ initApp notes path
+onStart _ = return $ initApp [] ""
+
+cloneOrCancel st = do
+  if st^.showDialog then do
+    M.continue $ st & showDialog .~ False
+  else do
+    M.continue $ clone st
 
 moveSelect :: Int -> Int -> Int -> Int
 moveSelect d l i = (i + d) `mod` l
+
+clone :: AppState e Name -> AppState e Name
+clone st = case st^.(notes . noteData) ^? ix (st^.selectedIndex) of
+            Nothing -> st
+            Just n  -> st & (notes . noteData) %~ (++ [unselect n])
+
+unselect :: Note -> Note
+unselect n = n {_selected = False }
 
 removeNote :: AppState e Name -> [Note]
 removeNote st = fromMaybe [] newNotes

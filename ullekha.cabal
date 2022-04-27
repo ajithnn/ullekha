@@ -46,6 +46,7 @@ library
     , filepath
     , microlens
     , microlens-th
+    , optparse-applicative
     , split
     , text
     , vty
@@ -70,6 +71,7 @@ executable ullekha
     , filepath
     , microlens
     , microlens-th
+    , optparse-applicative
     , split
     , text
     , ullekha

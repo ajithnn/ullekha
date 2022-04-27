@@ -39,6 +39,7 @@ library:
     - aeson
     - bytestring
     - filepath
+    - optparse-applicative
 
 executables:
   ullekha:
@@ -59,6 +60,7 @@ executables:
     - split
     - bytestring
     - filepath
+    - optparse-applicative
 
 tests:
   ullekha-test:

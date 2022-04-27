@@ -10,8 +10,11 @@ import           Lens.Micro.TH        (makeLenses)
 import           System.FilePath
 
 
+data CmdInputOptions = FileInput FilePath | NoPersist
+
 data Name = TitleField
           | ContentField
+          | HighlightField
           | NotesRow
           | MainViewPort
           | Halted
@@ -20,9 +23,10 @@ data Name = TitleField
 data Choice = Save | Cancel deriving (Show)
 
 data Note = Note{
-  _title    :: Text,
-  _content  :: Text,
-  _selected :: Bool
+  _title       :: Text,
+  _content     :: Text,
+  _selected    :: Bool,
+  _highlighted :: Bool
 } deriving (Show,Generic,Eq)
 
 instance ToJSON Note where
