@@ -22,10 +22,10 @@ The app provides a completely mouse-free , keyboard-only interface to add / edit
 
 ## To Be added 
 
-[ ] Add note groups 
-[ ] Allow persistence across devices 
-[ ] Allow user to override keyboard shortcuts 
-[ ] Multi-select and delete 
-[ ] Allow Checkboxes within the note
-[ ] Timed notes which expire 
+- [ ] Add note groups 
+- [ ] Allow persistence across devices 
+- [ ] Allow user to override keyboard shortcuts 
+- [ ] Multi-select and delete 
+- [ ] Allow Checkboxes within the note
+- [ ] Timed notes which expire 
 
