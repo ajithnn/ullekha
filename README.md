@@ -5,7 +5,7 @@ A TUI for a notes app. Add notes , todos , random text anything directly on the 
 The app provides a completely mouse-free , keyboard-only interface to add / edit / delete / highlight notes. The viewport is scrollable and can adjust automatically to resizing. 
 
 
-** Built using Haskell & Brick Library : https://hackage.haskell.org/package/brick-0.62 ** 
+**Built using Haskell & Brick Library : https://hackage.haskell.org/package/brick-0.62** 
 
 
 ## Features 
