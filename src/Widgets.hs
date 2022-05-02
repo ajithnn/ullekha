@@ -17,7 +17,8 @@ import           Brick.Widgets.Core
 import           Brick.Widgets.Dialog       as D
 import qualified Brick.Widgets.Edit         as E
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.List                  as L (intercalate, length, map)
+import           Data.List                  as L (intercalate, length, map,
+                                                  transpose)
 import           Data.List.Split
 import           Data.Text                  as T hiding (center, chunksOf, null,
                                                   unlines)
@@ -61,8 +62,8 @@ scrollableNoteWidget s =
 noteWidgets :: Int -> AppState e Name -> Widget Name
 noteWidgets width st = padLeft (Pad 0) $ padRight Max $ padBottom Max $
   withBorderStyle unicode widgetLayout
-    where rows = splitNotes width 35 (st^.(notes . noteData))
-          widgetLayout =  vBox $ L.map (hBox . L.map note) rows
+    where rows = L.transpose $ splitNotes width 35 (st^.(notes . noteData))
+          widgetLayout =  hBox $ L.map (vBox . L.map note) rows
           splitNotes totWidth noteWidth = chunksOf $ totWidth `div` noteWidth
 
 note :: Note -> Widget Name

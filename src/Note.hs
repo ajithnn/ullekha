@@ -24,11 +24,11 @@ initNotes notes = Notes{
                     _tempTodoNote = getTodoNote "" []
                     }
 
-getFreeNote :: Form Note e Name -> AppState e Name -> Note
-getFreeNote f' st = Note{
+getFreeNote :: Form Note e Name -> AppState e Name -> Bool -> Note
+getFreeNote f' st sel = Note{
                   _title = formState f'^.title,
                   _content = formState f'^.content,
-                  _selected = False,
+                  _selected = sel,
                   _highlighted=formState f'^.highlighted,
                   _tasks = [],
                   _selectedTaskIndex = -1,

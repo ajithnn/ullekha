@@ -25,7 +25,7 @@ noteDialog :: AppState e Name -> Widget Name
 noteDialog st = padLeft (Pad 0) $ padRight Max $ padBottom Max dlgContent
     where nDialog = st^.dlg
           dlgContent  | st^.dialogMode  == ChoiceCreate = renderDialog nDialog $ choiceDialog st
-                      | st^.dialogMode  == TodoCreate = renderDialog nDialog $ vBox $ [todoTitleWidget st] ++ [str "\n"] ++ getTasks st ++ [newTaskWidget st]
+                      | st^.dialogMode  `elem` [TodoCreate,TodoEdit] = renderDialog nDialog $ vBox $ [todoTitleWidget st] ++ [str "\n"] ++ getTasks st ++ [newTaskWidget st]
                       | st^.dialogMode  `elem` [NoteCreate,NoteEdit] = renderDialog nDialog $ getForm $ st^.form
                       | otherwise = renderDialog nDialog $ str "Invalid Mode"
 
