@@ -1,9 +1,12 @@
 module Form(getForm,emptyForm,setForm) where
 
+import           Brick.Focus
 import           Brick.Forms
 import           Brick.Types
 import           Brick.Widgets.Border (border, borderWithLabel, vBorder)
 import           Brick.Widgets.Core
+import           Data.Text            as T hiding (map, zipWith)
+import           Lens.Micro           (each, ix, (&), (^.), (^?))
 import           Types
 
 getForm :: Form Note e Name -> Widget Name
@@ -20,12 +23,13 @@ mkForm =
     let label s w = padBottom (Pad 1) $
                     vLimit 1 (hLimit 15 $ str s <+> fill ' ') <+> w
     in newForm [ label "Title" @@=
-                  editTextField title TitleField (Just 1)
+                  editTextField title "TitleField" (Just 1)
                , label "Content" @@=
-                  editTextField content ContentField Nothing
+                  editTextField content "ContentField" Nothing
                , label "" @@=
-                   checkboxField highlighted HighlightField "Important?"
+                   checkboxField highlighted "HighlightField" "Important?"
                ]
+
 
 
 

@@ -28,6 +28,8 @@ library
       Actions
       Dialog
       Form
+      Note
+      Task
       Types
       Widgets
   other-modules:
@@ -43,6 +45,8 @@ library
     , base >=4.7 && <5
     , brick
     , bytestring
+    , containers
+    , directory
     , filepath
     , microlens
     , microlens-th
@@ -68,6 +72,8 @@ executable ullekha
     , base >=4.7 && <5
     , brick
     , bytestring
+    , containers
+    , directory
     , filepath
     , microlens
     , microlens-th

@@ -40,6 +40,8 @@ library:
     - bytestring
     - filepath
     - optparse-applicative
+    - containers
+    - directory
 
 executables:
   ullekha:
@@ -61,6 +63,8 @@ executables:
     - bytestring
     - filepath
     - optparse-applicative
+    - directory
+    - containers
 
 tests:
   ullekha-test:

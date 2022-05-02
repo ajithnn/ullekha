@@ -3,11 +3,12 @@ module Widgets(app) where
 import           Actions
 import           Brick                      (on)
 import           Brick.AttrMap
-import           Brick.Focus                (focusGetCurrent, focusRing,
-                                             focusRingCursor)
+import           Brick.Focus                (focusGetCurrent, focusNext,
+                                             focusRing, focusRingCursor)
 import           Brick.Forms
 import qualified Brick.Main                 as M
 import           Brick.Types
+import           Brick.Util                 (fg, on)
 import           Brick.Widgets.Border       (border, borderWithLabel, vBorder)
 import           Brick.Widgets.Border.Style (borderStyleFromChar, unicode,
                                              unicodeBold, unicodeRounded)
@@ -16,33 +17,35 @@ import           Brick.Widgets.Core
 import           Brick.Widgets.Dialog       as D
 import qualified Brick.Widgets.Edit         as E
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.List                  as L (intercalate, map)
+import           Data.List                  as L (intercalate, length, map)
 import           Data.List.Split
-import           Data.Text                  as T hiding (center, chunksOf, null)
+import           Data.Text                  as T hiding (center, chunksOf, null,
+                                                  unlines)
 import           Dialog
 import           Form
 import qualified Graphics.Vty               as V
-import           Lens.Micro                 (each, (%~), (&), (.~), (^.))
+import           Lens.Micro                 (each, ix, (%~), (&), (.~), (^.),
+                                             (^?))
 import           Types                      as Ty
 
 
 helpText = [  "F12            : Show/Hide Help",
               "F1             : Unselect All",
               "Ctrl+Left/Right: Select Note",
-              "Ctrl+Up/Down   : Scroll Viewport",
-              "Ctrl+Del       : Delete Note",
-              "Enter          : Edit Selected Note",
+              "Ctrl+Up/Down   : Scroll",
+              "Ctrl+Del       : Delete",
+              "Enter          : Edit",
               "Insert         : Open Dialog",
-              "Ctrl-s         : Save Note",
-              "Ctrl-c         : Cancel Dialog if open",
-              "Ctrl-c         : Clone selected note",
+              "Ctrl-s         : Save & close dialog",
+              "Ctrl-c         : Cancel Dialog",
+              "Ctrl-c         : Clone selected",
               "Esc            : Save State & Exit"
           ]
 
 drawLayer :: AppState e Name -> Widget Name
 drawLayer st = widget
   where widget  | st^.showDialog = noteDialog st
-                | not (null (st^.(notes . noteData))) = viewport MainViewPort Vertical $ scrollableNoteWidget st
+                | not (null (st^.(notes . noteData))) = viewport "MainViewPort" Vertical $ scrollableNoteWidget st
                 | otherwise = welcomeWidget
 
 welcomeWidget :: Widget Name
@@ -65,13 +68,16 @@ noteWidgets width st = padLeft (Pad 0) $ padRight Max $ padBottom Max $
 note :: Note -> Widget Name
 note n =  withBorderStyle borderStyle $
           hLimit 35 $
-          vLimit 20 $
-          borderWithLabel (txt $ n^.title)
-          (padTop (Pad 0) $ highlightStyle $ txtWrap $ n^.content)
+          vLimit 20 noteOrTodo
   where borderStyle     | n^.selected = unicodeBold
                         | otherwise = unicode
         highlightStyle  | n^.highlighted = withAttr "highlightedNote"
                         | otherwise = withAttr "normalNote"
+        noteOrTodo  | n^.mode == FreeNote = borderWithLabel (txt $ n^.title)
+                                              (padTop (Pad 0) $ highlightStyle $ txtWrap $ n^.content)
+                    | n^.mode == TodoList = borderWithLabel (txt $ n^.title)
+                                              (padTop (Pad 0) $ highlightStyle $ (strWrap . unlines) (L.map show (n^.tasks)))
+                    | otherwise = emptyWidget
 
 helpWidget :: AppState e Name -> Widget Name
 helpWidget st = result
@@ -88,7 +94,8 @@ appEvent st ev = case ev of
   (VtyEvent (V.EvKey V.KIns  []))               -> M.continue $ st  & showDialog .~ True
   (VtyEvent (V.EvKey (V.KFun 1)  []))           -> M.continue $ st  & selectedIndex .~ (-1)
                                                                     & (notes . noteData . each . selected) .~ False
-  (VtyEvent (V.EvKey V.KEnter  []))             -> edit st ev
+  (VtyEvent (V.EvKey V.KEnter  []))             -> handleEnter st ev
+  (VtyEvent (V.EvKey (V.KChar '\t')  []))       -> handleTab st ev
   (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> scroll st 1
   (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> scroll st (-1)
   (VtyEvent (V.EvKey V.KRight  [V.MCtrl]))      -> select st 1
@@ -97,7 +104,8 @@ appEvent st ev = case ev of
   (VtyEvent (V.EvKey (V.KFun 12) []))           -> M.continue $ st & showHelp %~ not
   (VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl]))  -> cloneOrCancel st
   (VtyEvent (V.EvKey (V.KChar 's') [V.MCtrl]))  -> onSave st ev
-  _                                             -> onFormUpdate st ev
+  (VtyEvent e)                                  -> handleTypingEvents st ev e
+  _                                             -> M.continue st
 
 drawUi :: AppState e Name ->  [Widget Name]
 drawUi st = [
@@ -122,6 +130,9 @@ app =
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (E.editAttr, V.white `on` V.black),
+    (E.editFocusedAttr, V.black `on` V.yellow),
     ("highlightedNote", V.black `on` V.yellow),
-    ("normalNote", V.white `on` V.black)
+    ("normalNote", V.white `on` V.black),
+    ("taskHighlighted", fg V.yellow),
+    ("normalTask", fg V.white)
   ]
