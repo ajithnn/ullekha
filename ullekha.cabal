@@ -47,7 +47,6 @@ library
     , bytestring
     , containers
     , directory
-    , filepath
     , microlens
     , microlens-th
     , optparse-applicative
@@ -74,7 +73,6 @@ executable ullekha
     , bytestring
     , containers
     , directory
-    , filepath
     , microlens
     , microlens-th
     , optparse-applicative

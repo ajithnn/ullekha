@@ -38,7 +38,6 @@ library:
     - split
     - aeson
     - bytestring
-    - filepath
     - optparse-applicative
     - containers
     - directory
@@ -61,7 +60,6 @@ executables:
     - vty
     - split
     - bytestring
-    - filepath
     - optparse-applicative
     - directory
     - containers

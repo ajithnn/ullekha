@@ -12,18 +12,17 @@ module Actions (
   initApp
   ) where
 
-import           Brick
 import           Brick.Focus
 import           Brick.Forms
-import qualified Brick.Main            as M
+import qualified Brick.Main            as M (continue)
 import           Brick.Types
 import           Brick.Widgets.Edit    as E
-import           Data.Aeson
-import qualified Data.ByteString.Char8 as B
-import           Data.ByteString.Lazy  as BL hiding (readFile)
-import           Data.List             as L (delete, elem, head, length)
-import           Data.Map              as M
-import           Data.Maybe
+import           Data.Aeson            (eitherDecode, encodeFile)
+import qualified Data.ByteString.Char8 as B (pack)
+import           Data.ByteString.Lazy  as BL (fromStrict)
+import           Data.List             as L (delete, elem, length)
+import           Data.Map              as M (findWithDefault, fromList)
+import           Data.Maybe            (fromMaybe)
 import           Data.Text             as T hiding (elem, unlines)
 import           Dialog
 import           Form
@@ -31,9 +30,9 @@ import qualified Graphics.Vty          as V
 import           Lens.Micro            (each, ix, non, (%~), (&), (.~), (^.),
                                         (^?))
 import           Note
-import           System.Directory
+import           System.Directory      (doesFileExist)
 import           Task
-import           Types                 as Ty
+import           Types
 
 onFormUpdate st ev
     | st^.showDialog = handleFormEvent ev (st^.form) >>= (\f' -> M.continue $ st & form .~ f')

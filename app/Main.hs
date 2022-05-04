@@ -3,11 +3,9 @@ module Main where
 import           Actions
 import qualified Brick.Main          as M (defaultMain)
 import           Control.Monad       (void)
-import           Data.List           as L (length)
 import           Data.Semigroup      ((<>))
 import           Form
 import           Options.Applicative
-import           System.Environment
 import           Types
 import           Widgets
 

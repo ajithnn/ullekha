@@ -8,7 +8,6 @@ import           Data.Aeson
 import           Data.Text            as T hiding (center)
 import           GHC.Generics
 import           Lens.Micro.TH        (makeLenses)
-import           System.FilePath
 
 type Name = Text
 

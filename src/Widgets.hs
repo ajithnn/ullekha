@@ -1,34 +1,27 @@
 module Widgets(app) where
 
 import           Actions
-import           Brick                      (on)
 import           Brick.AttrMap
-import           Brick.Focus                (FocusRing, focusGetCurrent,
-                                             focusNext, focusRing,
-                                             focusRingCursor)
-import           Brick.Forms
+import           Brick.Focus                (focusRingCursor)
+import           Brick.Forms                (focusedFormInputAttr, formFocus)
 import qualified Brick.Main                 as M
 import           Brick.Types
 import           Brick.Util                 (fg, on)
-import           Brick.Widgets.Border       (border, borderWithLabel, vBorder)
-import           Brick.Widgets.Border.Style (borderStyleFromChar, unicode,
-                                             unicodeBold, unicodeRounded)
-import           Brick.Widgets.Center       (center, centerLayer, hCenter)
+import           Brick.Widgets.Border       (borderWithLabel)
+import           Brick.Widgets.Border.Style (unicode)
+import           Brick.Widgets.Center       (center)
 import           Brick.Widgets.Core
-import           Brick.Widgets.Dialog       as D
-import qualified Brick.Widgets.Edit         as E
+import qualified Brick.Widgets.Edit         as E (editAttr, editFocusedAttr)
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.List                  as L (elem, intercalate, length,
-                                                  map, transpose)
-import           Data.List.Split
-import           Data.Text                  as T hiding (center, chunksOf, null,
-                                                  unlines)
+import           Data.List                  as L (elem, intercalate)
+import           Data.Text                  as T hiding (center, null)
 import           Dialog
 import           Form
 import qualified Graphics.Vty               as V
 import           Lens.Micro                 (each, ix, (%~), (&), (.~), (^.),
                                              (^?))
-import           Types                      as Ty
+import           Note
+import           Types
 
 
 helpText = [  "F12            : Show/Hide Help",
@@ -52,34 +45,6 @@ drawLayer st = widget
 
 welcomeWidget :: Widget Name
 welcomeWidget = center (txt "Welcome to the Notes App")
-
-scrollableNoteWidget :: AppState e Name -> Widget Name
-scrollableNoteWidget s =
-    Widget Fixed Fixed $ do
-        ctx <- getContext
-        let totalWidth = ctx^.availWidthL
-        render $ vLimitPercent 100 $ noteWidgets totalWidth s
-
-noteWidgets :: Int -> AppState e Name -> Widget Name
-noteWidgets width st = padLeft (Pad 0) $ padRight Max $ padBottom Max $
-  withBorderStyle unicode widgetLayout
-    where rows = L.transpose $ splitNotes width 35 (st^.(notes . noteData))
-          widgetLayout =  hBox $ L.map (vBox . L.map note) rows
-          splitNotes totWidth noteWidth = chunksOf $ totWidth `div` noteWidth
-
-note :: Note -> Widget Name
-note n =  withBorderStyle borderStyle $
-          hLimit 35 $
-          vLimit 20 noteOrTodo
-  where borderStyle     | n^.selected = unicodeBold
-                        | otherwise = unicode
-        highlightStyle  | n^.highlighted = withAttr "highlightedNote"
-                        | otherwise = withAttr "normalNote"
-        noteOrTodo  | n^.mode == FreeNote = borderWithLabel (txt $ n^.title)
-                                              (padTop (Pad 0) $ highlightStyle $ txtWrap $ n^.content)
-                    | n^.mode == TodoList = borderWithLabel (txt $ n^.title)
-                                              (padTop (Pad 0) $ highlightStyle $ (strWrap . unlines) (L.map show (n^.tasks)))
-                    | otherwise = emptyWidget
 
 helpWidget :: AppState e Name -> Widget Name
 helpWidget st = result
@@ -115,7 +80,7 @@ drawUi st = [
       hLimitPercent 100 $
       vLimitPercent 100 $
       helpWidget st <+>
-      borderWithLabel (str "Notes") (drawLayer st)
+      borderWithLabel (str "Ullekha") (drawLayer st)
     ]
 
 appCursor st  | st^.dialogMode `L.elem` [NoteCreate,NoteEdit] = focusRingCursor formFocus (st^.form)

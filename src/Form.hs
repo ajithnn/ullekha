@@ -1,12 +1,9 @@
 module Form(getForm,emptyForm,setForm) where
 
-import           Brick.Focus
 import           Brick.Forms
 import           Brick.Types
 import           Brick.Widgets.Border (border, borderWithLabel, vBorder)
 import           Brick.Widgets.Core
-import           Data.Text            as T hiding (map, zipWith)
-import           Lens.Micro           (each, ix, (&), (^.), (^?))
 import           Types
 
 getForm :: Form Note e Name -> Widget Name

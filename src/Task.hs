@@ -1,12 +1,10 @@
 module Task where
 
-import           Brick.Focus
-import           Brick.Types
 import           Brick.Widgets.Core
-import           Brick.Widgets.Edit as E
+import           Brick.Widgets.Edit as E (getEditContents)
 import           Data.List          as L (intercalate, map)
 import           Data.Text          as T hiding (unlines)
-import           Lens.Micro         (each, ix, non, (%~), (&), (.~), (^.), (^?))
+import           Lens.Micro         ((^.))
 import           Note
 import           Types
 

@@ -1,18 +1,14 @@
 module Dialog where
 
 
-import           Brick.Focus
 import           Brick.Types
 import           Brick.Widgets.Border
 import           Brick.Widgets.Border.Style
 import           Brick.Widgets.Center       as C (center, centerAbout, hCenter)
 import           Brick.Widgets.Core
 import           Brick.Widgets.Dialog       as D
-import           Brick.Widgets.Edit
-import           Data.Text                  hiding (elem, map, unlines)
 import           Form
-import           Lens.Micro                 (ix, non, (%~), (&), (.~), (^.),
-                                             (^?))
+import           Lens.Micro                 ((^.))
 import           Note
 import           Task
 import           Types
