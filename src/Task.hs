@@ -22,3 +22,9 @@ getTasks st = L.map renderTask (st^.notes . tempTodoNote  . tasks)
 renderTask tsk = (rendered . str  . show) tsk
   where rendered  | tsk^.selectedTask = withAttr "taskHighlighted"
                   | otherwise = withAttr "normalTask"
+
+emptyTask = Task{
+    _status = False,
+    _task = "",
+    _selectedTask = False
+}

@@ -3,8 +3,9 @@ module Widgets(app) where
 import           Actions
 import           Brick                      (on)
 import           Brick.AttrMap
-import           Brick.Focus                (focusGetCurrent, focusNext,
-                                             focusRing, focusRingCursor)
+import           Brick.Focus                (FocusRing, focusGetCurrent,
+                                             focusNext, focusRing,
+                                             focusRingCursor)
 import           Brick.Forms
 import qualified Brick.Main                 as M
 import           Brick.Types
@@ -17,8 +18,8 @@ import           Brick.Widgets.Core
 import           Brick.Widgets.Dialog       as D
 import qualified Brick.Widgets.Edit         as E
 import           Control.Monad.IO.Class     (liftIO)
-import           Data.List                  as L (intercalate, length, map,
-                                                  transpose)
+import           Data.List                  as L (elem, intercalate, length,
+                                                  map, transpose)
 import           Data.List.Split
 import           Data.Text                  as T hiding (center, chunksOf, null,
                                                   unlines)
@@ -97,14 +98,14 @@ appEvent st ev = case ev of
                                                                     & (notes . noteData . each . selected) .~ False
   (VtyEvent (V.EvKey V.KEnter  []))             -> handleEnter st ev
   (VtyEvent (V.EvKey (V.KChar '\t')  []))       -> handleTab st ev
-  (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> scroll st 1
-  (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> scroll st (-1)
+  (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> M.vScrollBy (M.viewportScroll "MainViewPort") 1 >> M.continue st
+  (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> M.vScrollBy (M.viewportScroll "MainViewPort") (-1) >> M.continue st
   (VtyEvent (V.EvKey V.KRight  [V.MCtrl]))      -> select st 1
   (VtyEvent (V.EvKey V.KLeft  [V.MCtrl]))       -> select st (-1)
   (VtyEvent (V.EvKey V.KDel  [V.MCtrl]))        -> remove st
   (VtyEvent (V.EvKey (V.KFun 12) []))           -> M.continue $ st & showHelp %~ not
   (VtyEvent (V.EvKey (V.KChar 'c') [V.MCtrl]))  -> cloneOrCancel st
-  (VtyEvent (V.EvKey (V.KChar 's') [V.MCtrl]))  -> onSave st ev
+  (VtyEvent (V.EvKey (V.KChar 's') [V.MCtrl]))  -> onSave st ev >>= M.continue
   (VtyEvent e)                                  -> handleTypingEvents st ev e
   _                                             -> M.continue st
 
@@ -117,7 +118,9 @@ drawUi st = [
       borderWithLabel (str "Notes") (drawLayer st)
     ]
 
-appCursor st = focusRingCursor formFocus $ st^.form
+appCursor st  | st^.dialogMode `L.elem` [NoteCreate,NoteEdit] = focusRingCursor formFocus (st^.form)
+              | st^.dialogMode `L.elem` [TodoCreate,TodoEdit] = focusRingCursor (^.notes.focusEdit) st
+              | otherwise = M.showFirstCursor st
 
 app :: M.App (AppState e Name) e Name
 app =
@@ -131,9 +134,10 @@ app =
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (E.editAttr, V.white `on` V.black),
-    (E.editFocusedAttr, V.black `on` V.yellow),
+    (E.editFocusedAttr, V.white `on` V.black),
     ("highlightedNote", V.black `on` V.yellow),
     ("normalNote", V.white `on` V.black),
     ("taskHighlighted", fg V.yellow),
+    (focusedFormInputAttr, fg V.yellow),
     ("normalTask", fg V.white)
   ]

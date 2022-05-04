@@ -17,9 +17,11 @@ import           Types
 initNotes :: [Note] -> Notes
 initNotes notes = Notes{
                     _taskEdit = editor "TaskEdit" Nothing "",
+                    _taskEditLabel = "New Task",
                     _taskTitle = editor "TaskTitle" Nothing "",
                     _focusEdit = focusRing ["TaskTitle","TaskEdit"],
                     _totalNotes = L.length notes,
+                    _taskEditMode = False,
                     _noteData = notes,
                     _tempTodoNote = getTodoNote "" []
                     }
@@ -65,7 +67,7 @@ emptyNote = Note{
 
 getMode st = (st^.(notes . noteData) ^? ix (st^.selectedIndex)) ^. (non emptyNote . mode)
 
-newTaskWidget st = str "New Task: " <+> hLimit 30 (vLimit 1 $ withFocusRing (st^.(notes .focusEdit)) (renderEditor (str . unlines)) (st^.(notes . taskEdit)))
+newTaskWidget st = txt (mconcat [st^.notes.taskEditLabel,": "]) <+> hLimit 30 (vLimit 1 $ withFocusRing (st^.(notes .focusEdit)) (renderEditor (str . unlines)) (st^.(notes . taskEdit)))
 todoTitleWidget st = str "Title:    " <+> hLimit 30 (vLimit 1 $ withFocusRing (st^.(notes .focusEdit)) (renderEditor (str . unlines)) (st^.(notes . taskTitle)))
 
 emptyEditor :: Name -> Editor String Name

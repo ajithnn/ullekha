@@ -1,6 +1,5 @@
 module Types where
 
-
 import           Brick.Focus
 import           Brick.Forms
 import           Brick.Widgets.Dialog
@@ -53,12 +52,14 @@ instance ToJSON Note where
 instance FromJSON Note where
 
 data Notes = Notes{
-  _totalNotes   :: Int,
-  _noteData     :: [Note],
-  _tempTodoNote :: Note,
-  _taskEdit     :: Editor String Name,
-  _taskTitle    :: Editor String Name,
-  _focusEdit    :: FocusRing Name
+  _totalNotes    :: Int,
+  _noteData      :: [Note],
+  _tempTodoNote  :: Note,
+  _taskEdit      :: Editor String Name,
+  _taskEditLabel :: Text,
+  _taskTitle     :: Editor String Name,
+  _taskEditMode  :: Bool,
+  _focusEdit     :: FocusRing Name
 }
 
 data AppState e n = AppState {

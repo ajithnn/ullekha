@@ -16,7 +16,15 @@ setForm :: Maybe Note -> Form Note e Name
 setForm Nothing  = emptyForm
 setForm (Just n) = mkForm n
 
-emptyForm = mkForm Note{ _title="",_content="", _selected=False,_highlighted=False}
+emptyForm = mkForm Note{
+  _title="",
+  _tasks = [],
+  _mode = FreeNote,
+  _selectedTaskIndex = -1,
+  _content="",
+  _selected=False,
+  _highlighted=False
+}
 
 mkForm :: Note -> Form Note e Name
 mkForm =

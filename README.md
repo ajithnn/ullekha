@@ -1,8 +1,8 @@
-# ullekha
+# Ullekha
 
 
 A TUI for a notes app. Add notes , todos , random text anything directly on the terminal. Provide a filepath to be able to persist notes across terminal sessions. 
-The app provides a completely mouse-free , keyboard-only interface to add / edit / delete / highlight notes. The viewport is scrollable and can adjust automatically to resizing. 
+The app provides a completely mouse-free , keyboard-only interface to add / edit / delete / highlight any number of notes. The viewport is scrollable and can adjust automatically to terminal resizing. 
 
 
 **Built using Haskell & Brick Library : https://hackage.haskell.org/package/brick-0.62** 
@@ -18,14 +18,21 @@ The app provides a completely mouse-free , keyboard-only interface to add / edit
 - Auto adjust layout upon resizing
 - Persistence through a text file. 
 - Paste into the note
+- Add Todo support 
+  - Add Tasks
+  - Delete Tasks
+  - Edit Tasks
 
 
-## To Be added 
+## In Development 
 
-- [ ] Add note groups 
+- [ ] Add Highlight to Todos
 - [ ] Allow persistence across devices 
-- [ ] Allow user to override keyboard shortcuts 
 - [ ] Multi-select and delete 
-- [ ] Allow Checkboxes within the note
+
+
+## To be added (May be) 
+
 - [ ] Timed notes which expire 
+- [ ] Allow user to override keyboard shortcuts 
 
