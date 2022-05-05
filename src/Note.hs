@@ -40,10 +40,8 @@ note n =  withBorderStyle borderStyle $
                         | otherwise = unicode
         highlightStyle  | n^.highlighted = withAttr "highlightedNote"
                         | otherwise = withAttr "normalNote"
-        noteOrTodo  | n^.mode == FreeNote = borderWithLabel (txt $ n^.title)
-                                              (padTop (Pad 0) $ highlightStyle $ txtWrap $ n^.content)
-                    | n^.mode == TodoList = borderWithLabel (txt $ n^.title)
-                                              (padTop (Pad 0) $ highlightStyle $ (strWrap . unlines) (L.map show (n^.tasks)))
+        noteOrTodo  | n^.mode == FreeNote = borderWithLabel (txt $ n^.title) (padTop (Pad 0) $ highlightStyle $ txtWrap $ n^.content)
+                    | n^.mode == TodoList = borderWithLabel (txt $ n^.title) (padTop (Pad 0) $ highlightStyle $ (strWrap . unlines) (L.map show (n^.tasks)))
                     | otherwise = emptyWidget
 
 initNotes :: [Note] -> Notes
@@ -69,8 +67,6 @@ getFreeNote f' st sel = Note{
                   _mode = FreeNote
                 }
 
-getTodoTitle :: AppState e Name -> Text
-getTodoTitle st = T.pack $ unlines $ getEditContents (st^.notes.taskTitle)
 
 getTodoNote :: Text -> [Task] -> Note
 getTodoNote title tsk = Note{
@@ -85,6 +81,7 @@ getTodoNote title tsk = Note{
 
 createTodoNote st = updatedTempNote ^. (notes . tempTodoNote)
   where updatedTempNote = st & (notes . tempTodoNote . title) .~ getTodoTitle st
+        getTodoTitle st = T.pack $ unlines $ getEditContents (st^.notes.taskTitle)
 
 emptyNote = Note{
                   _title = "",

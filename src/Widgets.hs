@@ -18,8 +18,7 @@ import           Data.Text                  as T hiding (center, null)
 import           Dialog
 import           Form
 import qualified Graphics.Vty               as V
-import           Lens.Micro                 (each, ix, (%~), (&), (.~), (^.),
-                                             (^?))
+import           Lens.Micro                 (each, (%~), (&), (.~), (^.), (^?))
 import           Note
 import           Types
 
@@ -29,7 +28,10 @@ helpText = [  "F12            : Show/Hide Help",
               "Ctrl+Left/Right: Select Note",
               "Ctrl+Up/Down   : Scroll",
               "Ctrl+Del       : Delete",
-              "Enter          : Edit",
+              "Enter          : Edit Seletcted Note",
+              "Enter          : Edit Task(In Todo Dialog)",
+              "Space          : Toggle Checkbox when selected",
+              "Tab            : Move Selection in Dialog",
               "Insert         : Open Dialog",
               "Ctrl-s         : Save & close dialog",
               "Ctrl-c         : Cancel Dialog",
