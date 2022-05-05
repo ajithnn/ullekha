@@ -9,7 +9,8 @@ The app provides a completely mouse-free , keyboard-only interface to add / edit
 
 ## Demo
 
-<video src='https://raw.githubusercontent.com/ajithnn/ullekha/master/ullekha-fast.webm' width=250></video>
+https://user-images.githubusercontent.com/6824632/166922234-f281b485-977f-4d8e-9adc-9fd7d17e3e07.mov
+
 
 ## Features 
 
