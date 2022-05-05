@@ -9,7 +9,7 @@ The app provides a completely mouse-free , keyboard-only interface to add / edit
 
 ## Demo
 
-<video src='./demo/ullekha.webm' width=250/>
+<video src='./demo/ullekha.webm' width=250></video>
 
 ## Features 
 
