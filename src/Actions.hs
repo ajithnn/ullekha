@@ -149,7 +149,7 @@ setFormState st = newState  & showDialog .~ True
                   | otherwise = st
 
 
-resetTodo st = st & (notes . focusEdit) .~ focusRing ["TaskTitle","TaskEdit"]
+resetTodo st = st & (notes . focusEdit) .~ focusRing ["TaskTitle","TaskEdit","Checkbox"]
                   & (notes . taskTitle) .~ emptyEditor "TaskTitle"
                   & (notes . taskEdit) .~ emptyEditor "TaskEdit"
                   & (notes . tempTodoNote)  .~ getTodoNote "" []
@@ -160,7 +160,7 @@ resetDialog st = st & dialogMode    .~ ChoiceCreate
 
 handleTaskEvents st (V.EvKey (V.KChar ' ') []) = st & (notes . tempTodoNote . tasks . ix (st^.notes.tempTodoNote.selectedTaskIndex) . status) %~ not
 handleTaskEvents st (V.EvKey V.KDel [])        = st & (notes . tempTodoNote . tasks) .~ removeTask st
-                                                    & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit"])
+                                                    & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit","Checkbox"])
                                                     & updateSelectedTaskIndex False (\_ -> -1)
                                                     & handleFocus
 handleTaskEvents st _ = st
@@ -169,6 +169,7 @@ handleToDoEditEvents st ev e = M.continue =<< case fromMaybe "None" $ focusGetCu
                                   "TaskEdit"  -> handleEventLensed st (notes . taskEdit) E.handleEditorEvent e
                                   "TaskTitle" -> handleEventLensed st (notes . taskTitle) E.handleEditorEvent e
                                   "Tasks"     -> return $ handleTaskEvents st e
+                                  "Checkbox"  -> return $ st & (notes . tempTodoNote . highlighted) %~ not
                                   _ -> return st
 
 handleFocus st = nextFocus
@@ -182,10 +183,15 @@ handleFocus st = nextFocus
         nextFocus | canFocusTask curFocus totalTasks && isTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent "Tasks" (focusRing ["Tasks"])
                                                                               & updateSelectedTaskIndex False (+1)
                                                                               & setTaskSelected
-                  | canFocusTask curFocus totalTasks && isLastTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit"])
+                  | canFocusTask curFocus totalTasks && isLastTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit","Checkbox"])
                                                                                   & updateSelectedTaskIndex False (\_ -> -1)
                                                                                   & (notes . focusEdit) %~ focusNext
-                  | otherwise = st  & updateSelectedTaskIndex False (\_ -> -1) & (notes . focusEdit) %~ focusNext
+                  | curFocus == "TaskEdit" = st & notes . tempTodoNote . checkBoxSelected .~ True
+                                                & (notes . focusEdit) %~ focusNext
+                                                & updateSelectedTaskIndex False (\_ -> -1)
+                  | curFocus == "Checkbox" = st & notes . tempTodoNote . checkBoxSelected .~ False
+                                                & (notes . focusEdit) %~ focusNext
+                  | otherwise = st  & (notes . focusEdit) %~ focusNext
 
 handleTaskEdit st = case fromMaybe "None" $ focusGetCurrent (st^.notes.focusEdit) of
     "TaskEdit"  | st^.notes.taskEditMode -> M.continue $
@@ -200,7 +206,7 @@ handleTaskEdit st = case fromMaybe "None" $ focusGetCurrent (st^.notes.focusEdit
     "Tasks" -> M.continue $
                         st  & (notes . taskEditLabel) .~ "Edit Task"
                             & (notes . taskEdit)  .~ editor "TaskEdit" Nothing (getSelectedTaskContent st)
-                            & (notes . focusEdit) .~ focusSetCurrent "TaskEdit" (focusRing ["TaskTitle","Tasks","TaskEdit"])
+                            & (notes . focusEdit) .~ focusSetCurrent "TaskEdit" (focusRing ["TaskTitle","Tasks","TaskEdit","Checkbox"])
                             & (notes . taskEditMode) .~ True
     _ -> M.continue st
 

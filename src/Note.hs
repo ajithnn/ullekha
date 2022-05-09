@@ -49,7 +49,7 @@ initNotes notes = Notes{
                     _taskEdit = editor "TaskEdit" Nothing "",
                     _taskEditLabel = "New Task",
                     _taskTitle = editor "TaskTitle" Nothing "",
-                    _focusEdit = focusRing ["TaskTitle","TaskEdit"],
+                    _focusEdit = focusRing ["TaskTitle","TaskEdit","Checkbox"],
                     _totalNotes = L.length notes,
                     _taskEditMode = False,
                     _noteData = notes,
@@ -62,6 +62,7 @@ getFreeNote f' st sel = Note{
                   _content = formState f'^.content,
                   _selected = sel,
                   _highlighted=formState f'^.highlighted,
+                  _checkBoxSelected = False,
                   _tasks = [],
                   _selectedTaskIndex = -1,
                   _mode = FreeNote
@@ -73,6 +74,7 @@ getTodoNote title tsk = Note{
                   _title = title,
                   _content = "",
                   _selected = False,
+                  _checkBoxSelected = False,
                   _highlighted=False,
                   _tasks = tsk,
                   _selectedTaskIndex = -1,
@@ -88,6 +90,7 @@ emptyNote = Note{
                   _selectedTaskIndex = -1,
                   _content = "",
                   _selected = False,
+                  _checkBoxSelected = False,
                   _highlighted=False,
                   _mode = InvalidMode,
                   _tasks = []
@@ -98,6 +101,12 @@ getMode st = (st^.(notes . noteData) ^? ix (st^.selectedIndex)) ^. (non emptyNot
 newTaskWidget st = txt (mconcat [st^.notes.taskEditLabel,": "]) <+> hLimit 30 (vLimit 1 $ withFocusRing (st^.(notes .focusEdit)) (renderEditor (str . unlines)) (st^.(notes . taskEdit)))
 
 todoTitleWidget st = str "Title:    " <+> hLimit 30 (vLimit 1 $ withFocusRing (st^.(notes .focusEdit)) (renderEditor (str . unlines)) (st^.(notes . taskTitle)))
+
+todoHighlightWidget st =  padBottom (Pad 1) $ padTop (Pad 1) render
+  where render  | st^.notes.tempTodoNote.highlighted = highlightAttribute $ str "[X] Important ?"
+                | otherwise = highlightAttribute $ str "[ ] Important ?"
+        highlightAttribute  | st^.notes.tempTodoNote.checkBoxSelected = withAttr "taskHighlighted"
+                            | otherwise = withAttr "normalTask"
 
 emptyEditor :: Name -> Editor String Name
 emptyEditor name = editor name Nothing ""

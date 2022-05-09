@@ -29,7 +29,7 @@ https://user-images.githubusercontent.com/6824632/166922234-f281b485-977f-4d8e-9
 
 ## In Development 
 
-- [ ] Add Highlight to Todos
+- [X] Add Highlight to Todos
 - [ ] Allow persistence across devices 
 - [ ] Multi-select and delete 
 

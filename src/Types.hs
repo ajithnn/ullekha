@@ -44,7 +44,8 @@ data Note = Note{
   _tasks             :: [Task],
   _selectedTaskIndex :: Int,
   _mode              :: NoteMode,
-  _highlighted       :: Bool
+  _highlighted       :: Bool,
+  _checkBoxSelected  :: Bool
 } deriving (Show,Generic,Eq)
 
 instance ToJSON Note where

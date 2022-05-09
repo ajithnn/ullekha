@@ -1,5 +1,6 @@
 module Task where
 
+import           Brick.Types
 import           Brick.Widgets.Core
 import           Brick.Widgets.Edit as E (getEditContents)
 import           Data.List          as L (intercalate, map)
@@ -17,7 +18,7 @@ getTask st selected = Task{
 
 getTasks st = L.map renderTask (st^.notes . tempTodoNote  . tasks)
 
-renderTask tsk = (rendered . str  . show) tsk
+renderTask tsk = padBottom (Pad 1) $ (rendered . str  . show) tsk
   where rendered  | tsk^.selectedTask = withAttr "taskHighlighted"
                   | otherwise = withAttr "normalTask"
 
