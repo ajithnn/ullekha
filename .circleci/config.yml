@@ -48,7 +48,7 @@ jobs:
           name: Auth Github
           command: gh auth login -h github.com || true
       
-      - run: gh release upload << pipeline.git.tag >> ~/.local/bin/ullekha 
+      - run: gh release upload $CIRCLE_TAG ~/.local/bin/ullekha 
 
 
       - store_artifacts:
