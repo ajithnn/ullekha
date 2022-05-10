@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/ullekha
+    docker:
+      - image: fpco/stack-build:lts-19.3
+    steps:
+      - checkout
+
+      # Restore Cached Dependencies
+      - type: cache-restore
+        name: Restore cached dependencis
+        key: 
+          - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
+          - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
+
+      # install dependencies
+      - run: 
+          name: Install Dependencies 
+          command: stack --no-terminal setup
+
+      - run: 
+          name: Run Tests 
+          command: stack --no-terminal test
+
+      - run: 
+          name: Install Executable
+          command: stack --no-terminal install
+
+      - save_cache:
+          name: Cache Dependencies
+          key: cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
+          paths:
+            - "/root/.stack"
+            - ".stack-work"
+
+      - store_artifacts:
+          path: ~/.local/bin/ullekha
+          destination: ullekha
+
+workflows:
+  version: 2
+  build_and_tag:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+
