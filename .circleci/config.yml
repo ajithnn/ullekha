@@ -12,7 +12,6 @@ jobs:
         name: Restore cached dependencis
         key: 
           - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}-{{ checksum "package.yaml" }}
-          - cci-demo-haskell-v1-{{ checksum "stack.yaml" }}
 
       # install dependencies
       - run: 
