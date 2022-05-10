@@ -41,6 +41,7 @@ library:
     - optparse-applicative
     - containers
     - directory
+    - hedis
 
 executables:
   ullekha:
@@ -63,6 +64,7 @@ executables:
     - optparse-applicative
     - directory
     - containers
+    - hedis
 
 tests:
   ullekha-test:

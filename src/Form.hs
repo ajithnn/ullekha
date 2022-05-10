@@ -20,6 +20,7 @@ emptyForm = mkForm Note{
   _selectedTaskIndex = -1,
   _content="",
   _selected=False,
+  _checkBoxSelected = False,
   _highlighted=False
 }
 
@@ -28,11 +29,11 @@ mkForm =
     let label s w = padBottom (Pad 1) $
                     vLimit 1 (hLimit 15 $ str s <+> fill ' ') <+> w
     in newForm [ label "Title" @@=
-                  editTextField title "TitleField" (Just 1)
+                  editTextField title TitleField(Just 1)
                , label "Content" @@=
-                  editTextField content "ContentField" Nothing
+                  editTextField content ContentField Nothing
                , label "" @@=
-                   checkboxField highlighted "HighlightField" "Important?"
+                   checkboxField highlighted HighlightField "Important ?"
                ]
 
 

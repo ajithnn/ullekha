@@ -46,15 +46,17 @@ note n =  withBorderStyle borderStyle $
 
 initNotes :: [Note] -> Notes
 initNotes notes = Notes{
-                    _taskEdit = editor "TaskEdit" Nothing "",
+                    _taskEdit = editor TaskEdit Nothing "",
                     _taskEditLabel = "New Task",
-                    _taskTitle = editor "TaskTitle" Nothing "",
-                    _focusEdit = focusRing ["TaskTitle","TaskEdit","Checkbox"],
+                    _taskTitle = editor TaskTitle Nothing "",
+                    _focusEdit = defaultTaskFocus,
                     _totalNotes = L.length notes,
                     _taskEditMode = False,
                     _noteData = notes,
                     _tempTodoNote = getTodoNote "" []
                     }
+
+defaultTaskFocus =  focusRing [TaskTitle,TaskEdit,Checkbox]
 
 getFreeNote :: Form Note e Name -> AppState e Name -> Bool -> Note
 getFreeNote f' st sel = Note{

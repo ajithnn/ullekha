@@ -42,7 +42,7 @@ helpText = [  "F12            : Show/Hide Help",
 drawLayer :: AppState e Name -> Widget Name
 drawLayer st = widget
   where widget  | st^.showDialog = noteDialog st
-                | not (null (st^.(notes . noteData))) = viewport "MainViewPort" Vertical $ scrollableNoteWidget st
+                | not (null (st^.(notes . noteData))) = viewport MainViewPort Vertical $ scrollableNoteWidget st
                 | otherwise = welcomeWidget
 
 welcomeWidget :: Widget Name
@@ -65,8 +65,8 @@ appEvent st ev = case ev of
                                                                     & (notes . noteData . each . selected) .~ False
   (VtyEvent (V.EvKey V.KEnter  []))             -> handleEnter st ev
   (VtyEvent (V.EvKey (V.KChar '\t')  []))       -> handleTab st ev
-  (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> M.vScrollBy (M.viewportScroll "MainViewPort") 1 >> M.continue st
-  (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> M.vScrollBy (M.viewportScroll "MainViewPort") (-1) >> M.continue st
+  (VtyEvent (V.EvKey V.KDown  [V.MCtrl]))       -> M.vScrollBy (M.viewportScroll MainViewPort) 1 >> M.continue st
+  (VtyEvent (V.EvKey V.KUp  [V.MCtrl]))         -> M.vScrollBy (M.viewportScroll MainViewPort) (-1) >> M.continue st
   (VtyEvent (V.EvKey V.KRight  [V.MCtrl]))      -> select st 1
   (VtyEvent (V.EvKey V.KLeft  [V.MCtrl]))       -> select st (-1)
   (VtyEvent (V.EvKey V.KDel  [V.MCtrl]))        -> remove st

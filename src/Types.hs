@@ -9,15 +9,10 @@ import           Data.Text            as T hiding (center)
 import           GHC.Generics
 import           Lens.Micro.TH        (makeLenses)
 
-type Name = Text
-
+data Name = TaskEdit | TaskTitle | Tasks | Checkbox | MainViewPort | TitleField | ContentField | HighlightField | None deriving (Show,Eq,Generic,Ord)
 data CmdInputOptions = FileInput FilePath | NoPersist
-
 data Choice = Save | Cancel deriving (Show)
-
-
 data NoteMode = TodoList | FreeNote | InvalidMode deriving (Show,Eq,Generic,Ord)
-
 data DialogMode = TodoCreate | NoteCreate | TodoEdit | NoteEdit | ChoiceCreate deriving (Show,Eq,Generic,Ord)
 
 instance ToJSON NoteMode where

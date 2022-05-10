@@ -72,17 +72,17 @@ handleTypingEvents st ev e =
                   | otherwise -> M.continue st
     TodoEdit      | st^.showDialog -> handleToDoEditEvents st ev e
                   | otherwise -> M.continue st
-    NoteCreate    | otherwise -> onFormUpdate st ev
-    NoteEdit      | otherwise -> onFormUpdate st ev
+    NoteCreate    -> onFormUpdate st ev
+    NoteEdit      -> onFormUpdate st ev
 
 handleEnter st ev =
   case st^.dialogMode of
     ChoiceCreate | st^.showDialog -> M.continue $ st & dialogMode .~ (st^.dialogSelect)
                  | otherwise -> M.continue $ st  & dialogMode .~ getDialogMode st & setFormState
-    TodoCreate  -> handleTaskEdit st
-    TodoEdit    -> handleTaskEdit st
-    NoteCreate  -> onFormUpdate st ev
-    NoteEdit    -> onFormUpdate st ev
+    TodoCreate   -> handleTaskEdit st
+    TodoEdit     -> handleTaskEdit st
+    NoteCreate   -> onFormUpdate st ev
+    NoteEdit     -> onFormUpdate st ev
 
 handleTab st ev =
   case st^.dialogMode of
@@ -145,13 +145,13 @@ setFormState st = newState  & showDialog .~ True
                             & editMode .~ True
   where newState  | st^.dialogMode == NoteEdit = st & form .~ setForm (st^.(notes . noteData) ^? ix (st^.selectedIndex))
                   | st^.dialogMode == TodoEdit = st & (notes . tempTodoNote) .~ (st^.notes.noteData ^? ix (st^.selectedIndex) ^. non emptyNote)
-                                                    & (notes . taskTitle) .~ editor "TaskTitle" Nothing (T.unpack (st^.notes.noteData ^? ix (st^.selectedIndex) ^. (non emptyNote . title)))
+                                                    & (notes . taskTitle) .~ editor TaskTitle Nothing (T.unpack (st^.notes.noteData ^? ix (st^.selectedIndex) ^. (non emptyNote . title)))
                   | otherwise = st
 
 
-resetTodo st = st & (notes . focusEdit) .~ focusRing ["TaskTitle","TaskEdit","Checkbox"]
-                  & (notes . taskTitle) .~ emptyEditor "TaskTitle"
-                  & (notes . taskEdit) .~ emptyEditor "TaskEdit"
+resetTodo st = st & (notes . focusEdit) .~ focusRing [TaskTitle,TaskEdit,Checkbox]
+                  & (notes . taskTitle) .~ emptyEditor TaskTitle
+                  & (notes . taskEdit) .~ emptyEditor TaskEdit
                   & (notes . tempTodoNote)  .~ getTodoNote "" []
 
 resetDialog st = st & dialogMode    .~ ChoiceCreate
@@ -160,54 +160,54 @@ resetDialog st = st & dialogMode    .~ ChoiceCreate
 
 handleTaskEvents st (V.EvKey (V.KChar ' ') []) = st & (notes . tempTodoNote . tasks . ix (st^.notes.tempTodoNote.selectedTaskIndex) . status) %~ not
 handleTaskEvents st (V.EvKey V.KDel [])        = st & (notes . tempTodoNote . tasks) .~ removeTask st
-                                                    & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit","Checkbox"])
+                                                    & (notes . focusEdit) .~ focusSetCurrent TaskTitle defaultTaskFocus
                                                     & updateSelectedTaskIndex False (\_ -> -1)
                                                     & handleFocus
 handleTaskEvents st _ = st
 
-handleToDoEditEvents st ev e = M.continue =<< case fromMaybe "None" $ focusGetCurrent (st^.notes.focusEdit) of
-                                  "TaskEdit"  -> handleEventLensed st (notes . taskEdit) E.handleEditorEvent e
-                                  "TaskTitle" -> handleEventLensed st (notes . taskTitle) E.handleEditorEvent e
-                                  "Tasks"     -> return $ handleTaskEvents st e
-                                  "Checkbox"  -> return $ st & (notes . tempTodoNote . highlighted) %~ not
+handleToDoEditEvents st ev e = M.continue =<< case fromMaybe None $ focusGetCurrent (st^.notes.focusEdit) of
+                                  TaskEdit  -> handleEventLensed st (notes . taskEdit) E.handleEditorEvent e
+                                  TaskTitle -> handleEventLensed st (notes . taskTitle) E.handleEditorEvent e
+                                  Tasks     -> return $ handleTaskEvents st e
+                                  Checkbox  -> return $ st & (notes . tempTodoNote . highlighted) %~ not
                                   _ -> return st
 
 handleFocus st = nextFocus
-  where curFocus = fromMaybe "TaskTitle" $ focusGetCurrent (st^.notes.focusEdit)
+  where curFocus = fromMaybe TaskTitle $ focusGetCurrent (st^.notes.focusEdit)
         totalTasks = L.length (st^.notes.tempTodoNote.tasks)
         taskIndex = totalTasks -1
         selIndex = st^.notes.tempTodoNote.selectedTaskIndex
-        canFocusTask curFocus totalTasks  = curFocus `L.elem` ["TaskTitle","Tasks"] && totalTasks > 0
+        canFocusTask curFocus totalTasks  = curFocus `L.elem` [TaskTitle,Tasks] && totalTasks > 0
         isTask index = index < taskIndex
         isLastTask index = index == taskIndex
-        nextFocus | canFocusTask curFocus totalTasks && isTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent "Tasks" (focusRing ["Tasks"])
+        nextFocus | canFocusTask curFocus totalTasks && isTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent Tasks (focusRing [Tasks])
                                                                               & updateSelectedTaskIndex False (+1)
                                                                               & setTaskSelected
-                  | canFocusTask curFocus totalTasks && isLastTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent "TaskTitle" (focusRing ["TaskTitle","TaskEdit","Checkbox"])
+                  | canFocusTask curFocus totalTasks && isLastTask selIndex = st  & (notes . focusEdit) .~ focusSetCurrent TaskTitle defaultTaskFocus
                                                                                   & updateSelectedTaskIndex False (\_ -> -1)
                                                                                   & (notes . focusEdit) %~ focusNext
-                  | curFocus == "TaskEdit" = st & notes . tempTodoNote . checkBoxSelected .~ True
+                  | curFocus == TaskEdit = st & notes . tempTodoNote . checkBoxSelected .~ True
                                                 & (notes . focusEdit) %~ focusNext
                                                 & updateSelectedTaskIndex False (\_ -> -1)
-                  | curFocus == "Checkbox" = st & notes . tempTodoNote . checkBoxSelected .~ False
+                  | curFocus == Checkbox = st & notes . tempTodoNote . checkBoxSelected .~ False
                                                 & (notes . focusEdit) %~ focusNext
                   | otherwise = st  & (notes . focusEdit) %~ focusNext
 
-handleTaskEdit st = case fromMaybe "None" $ focusGetCurrent (st^.notes.focusEdit) of
-    "TaskEdit"  | st^.notes.taskEditMode -> M.continue $
+handleTaskEdit st = case fromMaybe None $ focusGetCurrent (st^.notes.focusEdit) of
+    TaskEdit  | st^.notes.taskEditMode -> M.continue $
                                             st  & (notes . tempTodoNote . tasks . ix (st^.notes.tempTodoNote.selectedTaskIndex)) .~ getTask st False
-                                                & (notes . taskEdit)  .~ emptyEditor "TaskEdit"
+                                                & (notes . taskEdit)  .~ emptyEditor TaskEdit
                                                 & updateSelectedTaskIndex False (\_ -> -1)
                                                 & (notes . taskEditLabel) .~ "New Task"
-                                                & (notes . taskEditMode) .~ False
+                                                & (notes . taskEditMode)  .~ False
                 | otherwise ->  M.continue $
                                 st  & (notes . tempTodoNote . tasks) %~ (++[getTask st False])
-                                    & (notes . taskEdit)  .~ emptyEditor "TaskEdit"
-    "Tasks" -> M.continue $
+                                    & (notes . taskEdit)  .~ emptyEditor TaskEdit
+    Tasks -> M.continue $
                         st  & (notes . taskEditLabel) .~ "Edit Task"
-                            & (notes . taskEdit)  .~ editor "TaskEdit" Nothing (getSelectedTaskContent st)
-                            & (notes . focusEdit) .~ focusSetCurrent "TaskEdit" (focusRing ["TaskTitle","Tasks","TaskEdit","Checkbox"])
-                            & (notes . taskEditMode) .~ True
+                            & (notes . taskEdit)      .~ editor TaskEdit Nothing (getSelectedTaskContent st)
+                            & (notes . focusEdit)     .~ focusSetCurrent TaskEdit (focusRing [TaskTitle,Tasks,TaskEdit,Checkbox])
+                            & (notes . taskEditMode)  .~ True
     _ -> M.continue st
 
 setTaskSelected st = st & (notes . tempTodoNote . tasks . ix (st^.notes.tempTodoNote.selectedTaskIndex) . selectedTask) .~ True
@@ -220,7 +220,7 @@ getDialogMode st = dlgMode
   where modes = M.fromList [(FreeNote,NoteEdit),(TodoList,TodoEdit)]
         dlgMode = M.findWithDefault ChoiceCreate (st^.(notes . noteData) ^? ix (st^.selectedIndex) ^. (non emptyNote . mode)) modes
 
-initApp :: [Note] -> FilePath -> AppState e Text
+initApp :: [Note] -> FilePath -> AppState e Name
 initApp notes path = AppState{
                             _notes = initNotes notes,
                             _selectedIndex = -1,
