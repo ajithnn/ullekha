@@ -46,9 +46,9 @@ jobs:
       # Auth Github
       - run:
           name: Auth Github
-          command: | 
-            gh auth login -h github.com
-            gh release upload << pipeline.git.tag >> ~/.local/bin/ullekha 
+          command: gh auth login -h github.com || true
+      
+      - run: gh release upload << pipeline.git.tag >> ~/.local/bin/ullekha 
 
 
       - store_artifacts:
