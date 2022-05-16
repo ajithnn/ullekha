@@ -30,7 +30,8 @@ https://user-images.githubusercontent.com/6824632/166922234-f281b485-977f-4d8e-9
 ## In Development 
 
 - [X] Add Highlight to Todos
-- [ ] Allow persistence across devices 
+- [X] Allow persistence across devices 
+	- Redis mode for persistence supported. Type ullekha --help for more information.
 - [ ] Multi-select and delete 
 
 
