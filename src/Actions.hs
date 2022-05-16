@@ -14,23 +14,29 @@ module Actions (
 
 import           Brick.Focus
 import           Brick.Forms
-import qualified Brick.Main            as M (continue)
+import qualified Brick.Main             as M (continue)
 import           Brick.Types
-import           Brick.Widgets.Edit    as E
-import           Data.Aeson            (eitherDecode, encodeFile)
-import qualified Data.ByteString.Char8 as B (pack)
-import           Data.ByteString.Lazy  as BL (fromStrict)
-import           Data.List             as L (delete, elem, length)
-import           Data.Map              as M (findWithDefault, fromList)
-import           Data.Maybe            (fromMaybe)
-import           Data.Text             as T hiding (elem, unlines)
+import           Brick.Widgets.Edit     as E
+import           Control.Exception
+import           Control.Monad.IO.Class
+import           Data.Aeson             as A (decode, eitherDecode, encode,
+                                              encodeFile)
+import qualified Data.ByteString.Char8  as B (pack)
+import           Data.ByteString.Lazy   as BL (fromStrict, toStrict)
+import           Data.List              as L (delete, elem, length)
+import           Data.Map               as M (findWithDefault, fromList)
+import           Data.Maybe             (fromMaybe, isJust, isNothing)
+import           Data.Text              as T hiding (elem, unlines)
+import           Data.Text.Encoding     (encodeUtf8)
+import           Database.Redis         hiding (None, select)
 import           Dialog
 import           Form
-import qualified Graphics.Vty          as V
-import           Lens.Micro            (each, ix, non, (%~), (&), (.~), (^.),
-                                        (^?))
+import qualified Graphics.Vty           as V
+import           Lens.Micro             (each, ix, non, (%~), (&), (.~), (^.),
+                                         (^?))
 import           Note
-import           System.Directory      (doesFileExist)
+import           System.Directory       (doesFileExist)
+import           System.IO
 import           Task
 import           Types
 
@@ -108,21 +114,13 @@ remove st | not (st^.showDialog) =
           | otherwise = M.continue st
 
 onExit st
-  | st^.persistFile == "" = return st
+  | st^.persistFile == "" && isNothing (st^.persistRedis) = return st
+  | isJust (st^.persistRedis)  = writeNotestoRedis st
   | otherwise = do
       encodeFile (st^.persistFile) $ st^.notes.noteData & each . selected .~ False
       return st
 
-onStart (FileInput path) = do
-  exists <- doesFileExist path
-  if exists then do
-    contents <- readFile path
-    let response = eitherDecode ((BL.fromStrict . B.pack) contents) :: Either String [Note]
-    case response of
-      Left e      -> return $ initApp [] path
-      Right notes -> return $ initApp notes path
-  else do return $ initApp [] path
-onStart _ = return $ initApp [] ""
+onStart = initApp
 
 cloneOrCancel st
   | st^.showDialog = M.continue $ resetDialog st
@@ -220,8 +218,17 @@ getDialogMode st = dlgMode
   where modes = M.fromList [(FreeNote,NoteEdit),(TodoList,TodoEdit)]
         dlgMode = M.findWithDefault ChoiceCreate (st^.(notes . noteData) ^? ix (st^.selectedIndex) ^. (non emptyNote . mode)) modes
 
-initApp :: [Note] -> FilePath -> AppState e Name
-initApp notes path = AppState{
+unselectNotes st = st^.notes.noteData & each . selected .~ False
+
+initApp options = do
+  (notes,persist) <- decodeOptions options
+  case persist of
+    (PersistFile path)    -> return   $ blankAppState notes (Just path) Nothing ""
+    (PersistRedis conn k) -> return $ blankAppState notes Nothing (Just conn) k
+    _                     -> return   $ blankAppState [] Nothing Nothing ""
+
+blankAppState :: [Note] -> Maybe FilePath -> Maybe ConnectInfo -> RedisKey -> AppState e Name
+blankAppState notes path conn key = AppState{
                             _notes = initNotes notes,
                             _selectedIndex = -1,
                             _form = emptyForm,
@@ -229,7 +236,43 @@ initApp notes path = AppState{
                             _showDialog = False,
                             _dialogMode = ChoiceCreate,
                             _dialogSelect = NoteCreate,
-                            _persistFile = path,
+                            _persistFile = fromMaybe "" path,
+                            _persistRedis = conn,
+                            _persistRedisKey = key,
                             _showHelp = True,
                             _dlg = getDialog
                           }
+
+decodeOptions :: CmdOptions -> IO ([Note],NotesPersist)
+decodeOptions CmdOptions{inputType = FileInput path} = getNotesFromFile path >>= (\notes -> return (notes,PersistFile path))
+decodeOptions CmdOptions{inputType = RedisInput connStr,redisKey = key} = do
+  case (parseConnectInfo . T.unpack) connStr of
+    Left e         -> return ([],PersistNone)
+    Right connInfo -> withCheckedConnect connInfo (getNotesFromRedis key) >>= (\notes -> return (notes,PersistRedis connInfo key))
+decodeOptions _ = return ([],PersistNone)
+
+getNotesFromFile :: FilePath -> IO [Note]
+getNotesFromFile path = withFile path ReadMode (\handle -> do
+      contents <- hGetContents' handle `catch` \e -> const (return "[]") (e :: IOException)
+      case eitherDecode ((BL.fromStrict . B.pack) contents) :: Either String [Note] of
+        Left e      -> return []
+        Right notes -> return notes )
+
+writeNotestoRedis :: AppState e Name -> IO (AppState e Name)
+writeNotestoRedis st = case st^.persistRedis of
+  Nothing -> return st
+  Just connInfo -> withCheckedConnect connInfo (\conn -> runRedis conn $ do
+    let notes = A.encode $ unselectNotes st
+    set (encodeUtf8 $ st^.persistRedisKey) $ BL.toStrict notes
+    return st )
+
+
+getNotesFromRedis :: Text -> Connection -> IO [Note]
+getNotesFromRedis key conn = runRedis conn $ do
+  notesString <- get $ encodeUtf8 key
+  case notesString of
+    Right nStr -> do
+      case A.decode (maybe "[]" BL.fromStrict nStr) :: Maybe [Note] of
+        Just n  -> return n
+        Nothing -> return []
+    Left _ -> return []
